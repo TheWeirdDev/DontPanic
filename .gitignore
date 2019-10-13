@@ -1,0 +1,8 @@
+*.o
+*.out
+*.so
+*.a
+*.bin
+*.iso
+boch*.txt
+*.sym
