@@ -11,7 +11,7 @@ extern (C) void kmain(void* addr, int magic) {
 
     multiboot_tag* tag = cast(multiboot_tag*)(addr + 8);
     Console.initScreen();
-    Console.puts("Hello World!\n");
+    Console.puts("Welcome To DontPanic OS\n");
     while (tag.type != MULTIBOOT_TAG_TYPE_END) {
         scope (exit)
             tag = cast(multiboot_tag*)(cast(ubyte*) tag + ((tag.size + 7) & ~7));
