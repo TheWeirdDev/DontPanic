@@ -6,3 +6,4 @@
 *.iso
 boch*.txt
 *.sym
+.vscode/

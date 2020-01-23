@@ -52,14 +52,19 @@ extern (C) void kmain(void* addr, int magic) {
 
             Console.putNum(reserved_memory / 1024);
             Console.puts(" Reserved\n");
+            break;
         default:
 
             break;
         }
     }
+
     initIDT();
-    for (;;) { //Loop forever. You can add your kernel logic here
-        asm {
+    //assert(false, "error");
+    // int y = 0;
+    // int x = 2 / y;
+    for (;;) {
+        asm nothrow {
             hlt;
         }
     }

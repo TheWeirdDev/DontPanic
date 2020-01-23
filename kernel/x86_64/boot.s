@@ -7,8 +7,8 @@ kstart:
     mov esp, stack_top
     mov ebp, stack_top
 
-    mov edi, ebx
-   	mov esi, eax
+    push ebx
+   	push eax
     call check_multiboot
     call check_cpuid
     call check_long_mode
@@ -16,7 +16,8 @@ kstart:
     call enable_paging
     ; load the 64-bit GDT
     lgdt [GDT64.Pointer]
-
+    pop esi
+   	pop edi
     jmp GDT64.Code:long_mode_start
     hlt
 

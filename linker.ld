@@ -14,7 +14,10 @@ SECTIONS {
         *(.text)
     }
    .data   : {   *(.data  )   }
-   .rodata   : {   *(.rodata)   }
+    .rodata : ALIGN(4K) {
+        *(.rodata)
+
+    }
    .bss   : {   *(.bss   )   }
 
 }

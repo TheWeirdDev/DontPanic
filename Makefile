@@ -15,16 +15,15 @@ kernel: asm d
 	    build/boot.o \
 		build/boot_header.o \
 		build/long_mode.o \
-		build/kmain.o
+		build/kernel.o
 
 asm:
-	nasm -f elf64 -o build/long_mode.o 		kernel/x86_64/long_mode.s
-	nasm -f elf64 -o build/boot.o 			kernel/x86_64/boot.s
-	nasm -f elf64 -o build/boot_header.o 	kernel/x86_64/boot_header.s
+	nasm -f elf64 -F dwarf -g -o build/long_mode.o 		kernel/x86_64/long_mode.s
+	nasm -f elf64 -F dwarf -g -o build/boot.o 			kernel/x86_64/boot.s
+	nasm -f elf64 -F dwarf -g -o build/boot_header.o 	kernel/x86_64/boot_header.s
 
 d:
-	#ldc -c -nodefaultlib -boundscheck=off -code-model=kernel -betterC -g -nogc -of=build/kstart.o kernel/x86_64/kstart.d
-	ldc -c -nodefaultlib -boundscheck=off -code-model=kernel -betterC -g -nogc -of=build/kmain.o \
+	ldc -c -nodefaultlib -boundscheck=off -code-model=kernel -betterC -g -nogc -of=build/kernel.o \
 		kernel/kmain.d \
 		kernel/panic.d \
 		kernel/util.d \
@@ -33,3 +32,6 @@ d:
 		kernel/drivers/io.d \
 		kernel/drivers/keyboard.d \
 		kernel/multiboot.d
+
+clean:
+	rm build/*.o build/iso/boot/kernel.bin build/os.iso

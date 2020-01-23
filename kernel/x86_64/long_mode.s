@@ -13,6 +13,6 @@ long_mode_start:
     mov gs, ax
 
     cli
-;// pop rdi
+
     call kmain
     hlt

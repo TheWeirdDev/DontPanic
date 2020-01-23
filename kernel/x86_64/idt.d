@@ -4,6 +4,7 @@ import kernel.drivers.io;
 import kernel.drivers.keyboard;
 import kernel.util;
 import kernel.console;
+import kernel.panic;
 
 __gshared {
     IDTEntry[256] idt;
@@ -35,8 +36,8 @@ struct Registers {
 }
 
 nothrow:
-extern (C) void isr0() {
-    asm {
+extern (C) void isrx() {
+    asm nothrow {
         naked;
         cli;
         nop;
@@ -45,8 +46,19 @@ extern (C) void isr0() {
     }
 }
 
+extern (C) void isr0() {
+    static char* dvz = cast(char*) "DIVIDE BY ZERO";
+    asm nothrow {
+        naked;
+        cli;
+        mov RDI, dvz;
+        call panic;
+        hlt;
+    }
+}
+
 extern (C) void isr1() {
-    asm {
+    asm nothrow {
         naked;
         cli;
         // push 0;
@@ -89,7 +101,7 @@ extern (C) void isr1() {
 }
 
 void loadIDT() {
-    asm {
+    asm nothrow {
         naked;
         lidt [idtP];
         sti;
@@ -103,13 +115,12 @@ void initIDT() {
 
     memset(&idt, 0, IDTEntry.sizeof * 256);
 
-    //idtSet(cast(ubyte) 1, cast(ulong)&isr1, cast(ushort) 0x08, cast(ubyte) 0x8E);
-
-    foreach (i; 2 .. 22) {
+    idtSet(cast(ubyte) 0, cast(ulong)&isr0, cast(ushort) 0x08, cast(ubyte) 0x8E);
+    foreach (i; 1 .. 22) {
         if (i == 9) {
             idtSet(cast(ubyte) 9, cast(ulong)&isr1, cast(ushort) 0x08, cast(ubyte) 0x8E);
         } else
-            idtSet(cast(ubyte) i, cast(ulong)&isr0, cast(ushort) 0x08, cast(ubyte) 0x8E);
+            idtSet(cast(ubyte) i, cast(ulong)&isrx, cast(ushort) 0x08, cast(ubyte) 0x8E);
     }
     outb(0x21, 0xfd);
     outb(0xa1, 0xff);
