@@ -48,10 +48,10 @@ extern (C) void kmain(void* addr, int magic) {
                 }
             }
             Console.putNum(total_system_memory / 1024 / 1024 + 1);
-            Console.puts(" MB Ram\n");
+            Console.putLine(" MB Ram");
 
             Console.putNum(reserved_memory / 1024);
-            Console.puts(" Reserved\n");
+            Console.putLine(" Reserved");
             break;
         default:
 

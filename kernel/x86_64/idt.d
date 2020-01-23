@@ -115,18 +115,18 @@ void initIDT() {
 
     memset(&idt, 0, IDTEntry.sizeof * 256);
 
-    idtSet(cast(ubyte) 0, cast(ulong)&isr0, cast(ushort) 0x08, cast(ubyte) 0x8E);
-    foreach (i; 1 .. 22) {
-        if (i == 9) {
-            idtSet(cast(ubyte) 9, cast(ulong)&isr1, cast(ushort) 0x08, cast(ubyte) 0x8E);
+    idtSet(0u, cast(ulong)&isr0, 0x08u, 0x8Eu);
+    foreach (ubyte i; 1 .. 22) {
+        if (i == 9u) {
+            idtSet(i, cast(ulong)&isr1, 0x08u, 0x8Eu);
         } else
-            idtSet(cast(ubyte) i, cast(ulong)&isrx, cast(ushort) 0x08, cast(ubyte) 0x8E);
+            idtSet(i, cast(ulong)&isrx, 0x08u, 0x8Eu);
     }
     outb(0x21, 0xfd);
     outb(0xa1, 0xff);
     loadIDT();
-    Console.putLine("Load idt: Done");
-    Console.putLine("Keyboard init: Done");
+    Log.ok("Load idt");
+    Log.ok("Keyboard init");
 }
 
 void idtSet(ubyte number, ulong offset, ushort selector, ubyte flags) {

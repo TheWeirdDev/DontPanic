@@ -29,8 +29,8 @@ enum VColor : ubyte {
 struct Console {
 static:
     __gshared {
-        int x = 0;
-        int y = 0;
+        uint x = 0;
+        uint y = 0;
         VColor fgcolor = VColor.WHITE;
         VColor bgcolor = VColor.BLACK;
     }
@@ -40,16 +40,19 @@ nothrow:
     }
 
     void enableCursor() {
-        enum SCANLINE_LOW = 0, SCANLINE_HIGH = 1;
-        outb(0x3D4, 0x0A);
-        outb(0x3D5, (inb(0x3D5) & 0xC0) | SCANLINE_LOW);
 
-        outb(0x3D4, 0x0B);
-        outb(0x3D5, (inb(0x3D5) & 0xE0) | SCANLINE_HIGH);
+        outb(0x3D4, 0x09); // set maximum scan line register to 15
+        outb(0x3D5, 0x0F);
+
+        outb(0x3D4, 0x0B); // set the cursor end line to 15
+        outb(0x3D5, 0x0F);
+
+        outb(0x3D4, 0x0A); // set the cursor start line to 0 and enable cursor visibility
+        outb(0x3D5, 0x0);
     }
 
     void setCursorPos(uint x, uint y) {
-        setCursorPos(cast(ushort) x, cast(uint) y);
+        setCursorPos(cast(ushort) x, cast(ushort) y);
     }
 
     void setCursorPos(ushort x, ushort y) {
@@ -62,20 +65,24 @@ nothrow:
     }
 
     void scroll(uint n) {
-        if (n > 25) {
+        if (n > 24) {
             clearScreen();
             return;
         }
 
-        for (int i = n; i <= 25; i++) {
+        for (int i = n; i <= 24; i++) {
             auto src = cast(ubyte*)(VIDEO_ADDR + (i * 80 * 2));
             auto dest = cast(ubyte*)(VIDEO_ADDR + ((i - n) * 80 * 2));
             memcpy(dest, src, 80 * 2);
         }
 
-        for (int i = 25; i >= 25 - n; i--) {
-            auto mem = cast(ubyte*)(VIDEO_ADDR + ((i) * 80 * 2));
-            memset(mem, 0x0, 80 * 2);
+        for (int i = 24; i >= 24 - n + 1; i--) {
+            auto mem = (VIDEO_ADDR + ((i) * 80 * 2));
+            for (size_t j = mem; j < mem + (80 * 2); j += 2) {
+                ushort* m = cast(ushort*) j;
+                ushort attrib = (VColor.BLACK << 4) | (VColor.WHITE & 0x0F);
+                *(m) = cast(ushort)(0x0 | (attrib << 8));
+            }
         }
 
         //TODO: Change y
@@ -88,9 +95,10 @@ nothrow:
     }
 
     void clearScreen() {
-        for (size_t i = VIDEO_ADDR; i < (VIDEO_ADDR + (80 * 2 * 25)); i++) {
-            ubyte* mem = cast(ubyte*)(i);
-            *(mem) = 0x0;
+        for (size_t i = VIDEO_ADDR; i < (VIDEO_ADDR + (80 * 25 * 2)); i += 2) {
+            ushort* mem = cast(ushort*)(i);
+            ushort attrib = (VColor.BLACK << 4) | (VColor.WHITE & 0x0F);
+            *(mem) = cast(ushort)(0x0 | (attrib << 8));
         }
     }
 
@@ -106,6 +114,7 @@ nothrow:
         ushort attrib = (bg << 4) | (fg & 0x0F);
         *(where) = cast(ushort)(ch | (attrib << 8));
         x++;
+        setCursorPos(x, y);
     }
 
     void puts(const char* text) {
@@ -119,12 +128,13 @@ nothrow:
 
     void nextLine() {
         x = 0;
-        if (y < 25)
+        if (y < 24)
             y++;
         else {
             scroll(1);
             y = 24;
         }
+        setCursorPos(0, y);
     }
 
     void puts(const char* text, VColor fg, VColor bg) {
@@ -149,5 +159,22 @@ nothrow:
         while (i-- > 0) {
             putChar(buf[i]);
         }
+    }
+}
+
+struct Log {
+static nothrow:
+    void ok(const char* msg) {
+        Console.putChar('[');
+        Console.puts(" OK ", VColor.BRIGHT_GREEN, VColor.BLACK);
+        Console.puts("] ");
+        Console.putLine(msg);
+    }
+
+    void error(const char* msg) {
+        Console.putChar('[');
+        Console.puts(" NO ", VColor.BRIGHT_RED, VColor.BLACK);
+        Console.puts("] ");
+        Console.putLine(msg);
     }
 }

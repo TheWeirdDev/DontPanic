@@ -70,7 +70,7 @@ __gshared enum {
     KEY_INSERT = 0x52,
     KEY_KEYPAD_5 = 0x4C,
     KEY_KEYPAD_MUL = 0x37,
-    KEY_KEYPAD_Minus = 0x4A,
+    KEY_KEYPAD_MIMUS = 0x4A,
     KEY_KEYPAD_PLUS = 0x4E,
     KEY_KEYPAD_DIV = 0x35,
     KEY_LEFT = 0x4B,
@@ -185,14 +185,18 @@ char get_ascii_char(ubyte key_code) {
 void keyboardHandler() {
 
     outb(0x20, 0x20);
-    ubyte status = inb(0x64);
+    const status = inb(0x64);
     /* Lowest bit of status will be set if buffer is not empty */
     if (status & 0x01) {
-        ubyte keycode = inb(0x60);
+        const keycode = inb(0x60);
         if (keycode < 0)
             return;
         if (char c = get_ascii_char(keycode)) {
             Console.putChar(c);
+        } else if (keycode == KEY_ENTER) {
+            Console.nextLine();
+        } else {
+            //Console.putNum(keycode);
         }
     }
     //Console.putNum(regs.intNo);
